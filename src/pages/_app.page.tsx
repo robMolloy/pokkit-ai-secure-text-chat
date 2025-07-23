@@ -106,7 +106,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>Pokkit AI - open text chat</title>
+        <title>Pokkit AI - secure text chat</title>
       </Head>
       <Layout
         showLeftSidebar={
