@@ -1,0 +1,79 @@
+/* Markdown styles */
+.react-markdown {
+  line-height: 1.6;
+}
+
+.react-markdown h1 {
+  font-size: 2em;
+  margin-bottom: 0.67em;
+  font-weight: bold;
+  color: hsl(var(--foreground));
+}
+
+.react-markdown h2 {
+  font-size: 1.5em;
+  margin-bottom: 0.83em;
+  font-weight: bold;
+  color: hsl(var(--foreground));
+}
+
+.react-markdown h3 {
+  font-size: 1.17em;
+  margin-bottom: 1em;
+  font-weight: bold;
+  color: hsl(var(--foreground));
+}
+
+.react-markdown p {
+  margin-bottom: 1em;
+  color: hsl(var(--foreground));
+}
+
+.react-markdown ul,
+.react-markdown ol {
+  margin-bottom: 1em;
+  padding-left: 2em;
+  color: hsl(var(--foreground));
+}
+
+.react-markdown li {
+  margin-bottom: 0.5em;
+}
+
+.react-markdown a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
+
+.react-markdown strong {
+  font-weight: bold;
+}
+
+.react-markdown em {
+  font-style: italic;
+}
+
+.react-markdown code {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  padding: 0.2em 0.4em;
+  border-radius: var(--radius);
+  font-family: monospace;
+  
+}
+
+.react-markdown pre {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  padding: 1em;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin-bottom: 1em;
+}
+
+.react-markdown blockquote {
+  border-left: 4px solid hsl(var(--border));
+  padding-left: 1em;
+  margin-bottom: 1em;
+  color: hsl(var(--muted-foreground));
+} 
