@@ -131,6 +131,10 @@ export const AiChatScreen = (p: { threadFriendlyId: string }) => {
             <AiInputTextForm
               disabled={mode === "thinking" || mode === "streaming"}
               onSubmit={async (x) => {
+                fetch("/api/submit-chat", {
+                  method: "POST",
+                  body: JSON.stringify({ token: pb.authStore.token }),
+                });
                 setMode("thinking");
                 const thread = await (async () => {
                   if (currentThread) return currentThread;

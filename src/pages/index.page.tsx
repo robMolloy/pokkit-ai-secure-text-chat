@@ -1,4 +1,5 @@
 import { MainLayout } from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
 import { H1 } from "@/components/ui/defaultComponents";
 
 export default function Home() {
@@ -9,6 +10,7 @@ export default function Home() {
       <p className="text-muted-foreground">
         This is your dashboard. Start adding your content here.
       </p>
+      <Button>Submit a chat</Button>
     </MainLayout>
   );
 }

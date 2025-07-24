@@ -6,3 +6,4 @@ const pbInstanceMap = {
 };
 
 export const pb = pbInstanceMap.pbLocal();
+export { PocketBase };
