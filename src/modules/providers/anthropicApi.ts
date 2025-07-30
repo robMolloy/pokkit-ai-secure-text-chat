@@ -1,4 +1,4 @@
-import { uuid } from "@/lib/utils";
+import { delay, uuid } from "@/lib/utils";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
@@ -31,55 +31,40 @@ export const createAnthropicTextMessage = (p: {
 
 export type TStreamStatus = "streaming" | "finished" | "error";
 export const callAnthropic = async (p: {
-  anthropic: Anthropic;
+  anthropicInstance: Anthropic;
   messages: TAnthropicMessage[];
-  onStreamStatusChange: (status: TStreamStatus) => void;
-  onStreamChange: (text: string) => void;
-  model?: "claude-3-5-haiku-20241022" | "claude-3-7-sonnet-20250219";
+  onNewChunk: (x: string) => void;
 }) => {
-  const model = p.model ?? "claude-3-5-haiku-20241022";
-
-  let streamStatus: undefined | TStreamStatus = undefined;
-  let fullResponse = "";
-
   try {
-    const stream = await p.anthropic.messages.create({
-      model,
+    const responseChunks: string[] = [];
+    const chunks = await p.anthropicInstance.messages.create({
+      model: "claude-3-5-haiku-20241022",
       max_tokens: 5000,
-      messages: p.messages.map((x) => ({ role: x.role, content: x.content })),
+      messages: p.messages,
       stream: true,
     });
 
-    for await (const message of stream) {
-      if (streamStatus !== "streaming") {
-        streamStatus = "streaming";
-        p.onStreamStatusChange("streaming");
-      }
-
-      if (message.type === "content_block_delta" && "text" in message.delta) {
-        fullResponse += message.delta.text;
-        p.onStreamChange(fullResponse);
+    for await (const chunk of chunks) {
+      if (chunk.type === "content_block_delta" && "text" in chunk.delta) {
+        await delay(25);
+        responseChunks.push(chunk.delta.text);
+        p.onNewChunk(chunk.delta.text);
       }
     }
 
-    p.onStreamStatusChange("finished");
-
-    return { success: true, data: fullResponse } as const;
+    return { success: true, data: responseChunks.join("") } as const;
   } catch (error) {
-    p.onStreamStatusChange("error");
-
-    return { success: false, error: error } as const;
+    return { success: false, error } as const;
   }
 };
 
 export const testAnthropicInstance = async (p: { anthropic: Anthropic }) => {
   const rtn = await callAnthropic({
-    anthropic: p.anthropic,
+    anthropicInstance: p.anthropic,
     messages: [
       createAnthropicMessage({ role: "user", content: [{ type: "text", text: "Hello, world!" }] }),
     ],
-    onStreamStatusChange: () => {},
-    onStreamChange: () => {},
+    onNewChunk: () => {},
   });
 
   return rtn;
@@ -93,13 +78,12 @@ export const createTitleForMessageThreadWithAnthropic = async (p: {
     "create a succinct title in plain text for the previous messages in this conversation";
 
   const rtn = await callAnthropic({
-    anthropic: p.anthropic,
+    anthropicInstance: p.anthropic,
     messages: [
       ...p.messages,
       createAnthropicMessage({ role: "user", content: [{ type: "text", text }] }),
     ],
-    onStreamStatusChange: () => {},
-    onStreamChange: () => {},
+    onNewChunk: () => {},
   });
 
   return rtn;

@@ -1,8 +1,12 @@
 import { MainLayout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { H1 } from "@/components/ui/defaultComponents";
+import { pb } from "@/config/pocketbaseConfig";
+import { streamFetch } from "@/lib/fetchUtils";
+import { useState } from "react";
 
 export default function Home() {
+  const [response, setResponse] = useState("");
   return (
     <MainLayout>
       <H1>Welcome to Pokkit AI</H1>
@@ -10,7 +14,24 @@ export default function Home() {
       <p className="text-muted-foreground">
         This is your dashboard. Start adding your content here.
       </p>
-      <Button>Submit a chat</Button>
+      <Button
+        onClick={async () => {
+          setResponse("");
+          const response = await streamFetch({
+            url: "/api/submit-chat-simple",
+            payload: { method: "POST", body: JSON.stringify({ token: pb.authStore.token }) },
+            onStream: (x) => {
+              console.log(`CallAnthropic.tsx:${/*LL*/ 96}`, { x });
+              setResponse(x);
+            },
+          });
+          console.log(`index.page.tsx:${/*LL*/ 70}`, response);
+        }}
+      >
+        Submit a chat
+      </Button>
+      <div>{response}</div>
+      {/* <pre>{JSON.stringify(response, undefined, 2)}</pre> */}
     </MainLayout>
   );
 }

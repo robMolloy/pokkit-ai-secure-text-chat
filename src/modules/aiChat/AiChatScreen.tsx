@@ -10,7 +10,8 @@ import { useAiThreadRecordsStore } from "@/modules/aiThreads/aiThreadRecordsStor
 import { useAnthropicStore } from "@/modules/providers/anthropicStore";
 import { ErrorScreen } from "@/screens/ErrorScreen";
 import { LoadingScreen } from "@/screens/LoadingScreen";
-import React, { useState } from "react";
+import Anthropic from "@anthropic-ai/sdk";
+import { useState } from "react";
 import { useAiTextMessageRecordsStore } from "../aiTextMessages/aiTextMessageRecordsStore";
 import {
   createAiTextMessageRecord,
@@ -22,13 +23,11 @@ import {
   updateAiThreadRecordTitle,
 } from "../aiThreads/dbAiThreadRecordUtils";
 import {
-  callAnthropic,
   createAnthropicTextMessage,
   createTitleForMessageThreadWithAnthropic,
   TStreamStatus,
 } from "../providers/anthropicApi";
 import { AiInputTextForm } from "./components/AiInputTextForm";
-import Anthropic from "@anthropic-ai/sdk";
 
 const handleSubmitMessage = async (p: {
   anthropicInstance: Anthropic;
@@ -62,22 +61,22 @@ const handleSubmitMessage = async (p: {
     });
   }
 
-  const anthropicResp = await callAnthropic({
-    anthropic: p.anthropicInstance,
-    messages: anthropicMessages,
-    onStreamStatusChange: p.onStreamStatusChange,
-    onStreamChange: p.onStreamChange,
-  });
+  // const anthropicResp = await callAnthropic({
+  //   anthropic: p.anthropicInstance,
+  //   messages: anthropicMessages,
+  //   onStreamStatusChange: p.onStreamStatusChange,
+  //   onStreamChange: p.onStreamChange,
+  // });
 
-  if (!anthropicResp.success) return { success: false, error: "anthropic call failed" } as const;
+  // if (!anthropicResp.success) return { success: false, error: "anthropic call failed" } as const;
 
-  const createAssistantAiTextMessageRecordResp = await createAiTextMessageRecord({
-    pb,
-    data: { threadId: p.thread.id, role: "assistant", contentText: anthropicResp.data },
-  });
+  // const createAssistantAiTextMessageRecordResp = await createAiTextMessageRecord({
+  //   pb,
+  //   data: { threadId: p.thread.id, role: "assistant", contentText: anthropicResp.data },
+  // });
 
-  if (!createAssistantAiTextMessageRecordResp.success)
-    return { success: false, error: "create assistant ai text message failed" } as const;
+  // if (!createAssistantAiTextMessageRecordResp.success)
+  //   return { success: false, error: "create assistant ai text message failed" } as const;
 
   return { success: true } as const;
 };
