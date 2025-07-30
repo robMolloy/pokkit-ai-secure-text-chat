@@ -1,10 +1,13 @@
-import { callAnthropic, createAnthropicMessage } from "@/modules/providers/anthropicApi";
+import { delay } from "@/lib/utils";
+import { callAnthropic, createAnthropicTextMessage } from "@/modules/providers/anthropicApi";
 import Anthropic from "@anthropic-ai/sdk";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_KEY });
+const timeoutInMs = 30_000;
 
 const handler = async (_req: NextApiRequest, res: NextApiResponse<unknown>) => {
+  const delayPromise = delay(timeoutInMs);
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -12,12 +15,12 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse<unknown>) => {
   let timeSinceLastFlush = 0;
   let messageChunksSinceLastFlush: string[] = [];
 
-  const callAnthropicResponse = await callAnthropic({
+  const callAnthropicPromise = callAnthropic({
     anthropicInstance: anthropic,
     messages: [
-      createAnthropicMessage({
+      createAnthropicTextMessage({
         role: "user",
-        content: [{ type: "text", text: "explain react useEffect" }],
+        text: "explain react useEffect",
       }),
     ],
     onNewChunk: (message) => {
@@ -33,9 +36,11 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse<unknown>) => {
       if ("flush" in res && typeof res.flush === "function") res.flush();
     },
   });
-  console.log(`submit-chat-simple.api.tsx:${/*LL*/ 57}`, callAnthropicResponse);
 
-  return res.end();
+  const promiseResult = await Promise.race([callAnthropicPromise, delayPromise]);
+  if (!promiseResult?.success) res.write(JSON.stringify({ error: "request timeout" }));
+
+  res.end();
 };
 
 export default handler;

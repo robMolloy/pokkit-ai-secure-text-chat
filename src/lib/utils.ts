@@ -15,8 +15,8 @@ export const safeJsonParse = (p: unknown) => {
   }
 };
 
-export const delay = async (x: number) => {
+export const delay = async (x: number): Promise<void> => {
   return new Promise((resolve) => {
-    setTimeout(() => resolve(true), x);
+    setTimeout(() => resolve(), x);
   });
 };

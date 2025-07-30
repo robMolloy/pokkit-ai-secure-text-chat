@@ -20,10 +20,7 @@ export default function Home() {
           const response = await streamFetch({
             url: "/api/submit-chat-simple",
             payload: { method: "POST", body: JSON.stringify({ token: pb.authStore.token }) },
-            onStream: (x) => {
-              console.log(`CallAnthropic.tsx:${/*LL*/ 96}`, { x });
-              setResponse(x);
-            },
+            onStream: (x) => setResponse(x),
           });
           console.log(`index.page.tsx:${/*LL*/ 70}`, response);
         }}

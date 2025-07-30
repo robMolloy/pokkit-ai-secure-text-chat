@@ -23,11 +23,11 @@ export const streamFetch = async (p: {
 
       const chunk = decoder.decode(value, { stream: true });
       const jsonParseResp = safeJsonParse(chunk);
-      if (jsonParseResp.success === false) return { success: false, error: "unable to parse data" };
+      if (!jsonParseResp.success) return { success: false, error: "unable to parse data" };
 
       const message = jsonParseResp.data.message;
-      if (message === undefined || message === null)
-        return { success: false, error: "message is undefined or null" };
+      if (!message)
+        return { success: false, error: jsonParseResp.data.error ?? "no message provided" };
 
       strArray.push(message);
       p.onStream(strArray.join(""));
