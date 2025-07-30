@@ -32,7 +32,10 @@ const authenticatePbUserToken = async (
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_KEY });
 
-const schema = z.object({ token: z.string() });
+const schema = z.object({
+  token: z.string(),
+  prompt: z.string(),
+});
 
 const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL;
 const timeoutInMs = 30_000;
@@ -66,7 +69,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<unknown>) => {
     messages: [
       createAnthropicTextMessage({
         role: "user",
-        text: "explain react useEffect",
+        text: parsed.data.prompt,
       }),
     ],
     onNewChunk: (message) => {

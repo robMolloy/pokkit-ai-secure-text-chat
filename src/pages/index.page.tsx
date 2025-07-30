@@ -19,7 +19,10 @@ export default function Home() {
           setResponse("");
           const response = await streamFetch({
             url: "/api/submit-chat-incremental",
-            payload: { method: "POST", body: JSON.stringify({ token: pb.authStore.token }) },
+            payload: {
+              method: "POST",
+              body: JSON.stringify({ token: pb.authStore.token, prompt: "capital of taiwan" }),
+            },
             onStream: (x) => setResponse(x),
           });
           console.log(`index.page.tsx:${/*LL*/ 70}`, response);
