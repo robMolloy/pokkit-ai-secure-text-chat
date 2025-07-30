@@ -18,7 +18,7 @@ export default function Home() {
         onClick={async () => {
           setResponse("");
           const response = await streamFetch({
-            url: "/api/submit-chat-simple",
+            url: "/api/submit-chat-incremental",
             payload: { method: "POST", body: JSON.stringify({ token: pb.authStore.token }) },
             onStream: (x) => setResponse(x),
           });
