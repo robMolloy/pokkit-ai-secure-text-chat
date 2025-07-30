@@ -1,3 +1,4 @@
+import { createAnthropicMessage, TAnthropicMessage } from "@/modules/providers/anthropicApi";
 import Anthropic from "@anthropic-ai/sdk";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -11,7 +12,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_KEY });
 
 const callAnthropic = async (p: {
   anthropicInstance: Anthropic;
-  messages: string[];
+  messages: TAnthropicMessage[];
   onNewChunk: (x: string) => void;
 }) => {
   try {
@@ -19,7 +20,7 @@ const callAnthropic = async (p: {
     const chunks = await p.anthropicInstance.messages.create({
       model: "claude-3-5-haiku-20241022",
       max_tokens: 5000,
-      messages: p.messages.map((text) => ({ role: "user", content: [{ type: "text", text }] })),
+      messages: p.messages,
       stream: true,
     });
 
@@ -44,7 +45,12 @@ const handler = async (_req: NextApiRequest, res: NextApiResponse<unknown>) => {
 
   const callAnthropicResponse = await callAnthropic({
     anthropicInstance: anthropic,
-    messages: ["explain react useEffect"],
+    messages: [
+      createAnthropicMessage({
+        role: "user",
+        content: [{ type: "text", text: "explain react useEffect" }],
+      }),
+    ],
     onNewChunk: (message) => {
       res.write(JSON.stringify({ message }));
       res?.flushHeaders();

@@ -1,4 +1,4 @@
-import { delay, uuid } from "@/lib/utils";
+import { delay } from "@/lib/utils";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
@@ -10,7 +10,6 @@ export const anthropicMessageContentTextSchema = z.object({
 export type TAnthropicMessageContentItem = z.infer<typeof anthropicMessageContentTextSchema>;
 export type TAnthropicMessageRole = "user" | "assistant";
 export type TAnthropicMessage = {
-  id: string;
   role: TAnthropicMessageRole;
   content: TAnthropicMessageContentItem[];
 };
@@ -19,7 +18,7 @@ export const createAnthropicMessage = (p: {
   role: TAnthropicMessageRole;
   content: TAnthropicMessageContentItem[];
 }): TAnthropicMessage => {
-  return { id: uuid(), role: p.role, content: p.content };
+  return { role: p.role, content: p.content };
 };
 
 export const createAnthropicTextMessage = (p: {
