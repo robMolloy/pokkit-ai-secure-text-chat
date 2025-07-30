@@ -45,7 +45,7 @@ export const callAnthropic = async (p: {
 
     for await (const chunk of chunks) {
       if (chunk.type === "content_block_delta" && "text" in chunk.delta) {
-        await delay(25);
+        await delay(10); // delay gives smoother streaming
         responseChunks.push(chunk.delta.text);
         p.onNewChunk(chunk.delta.text);
       }
