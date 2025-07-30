@@ -40,8 +40,18 @@ const schema = z.object({
 const pbUrl = process.env.NEXT_PUBLIC_POCKETBASE_URL;
 const timeoutInMs = 30_000;
 
+const flush = (
+  p: { res: NextApiResponse<unknown> } & ({ error: string } | { message: string }),
+) => {
+  const { res, ...rest } = p;
+  res.write(JSON.stringify(rest));
+  res?.flushHeaders();
+  if ("flush" in res && typeof res.flush === "function") res.flush();
+};
+
 const handler = async (req: NextApiRequest, res: NextApiResponse<unknown>) => {
-  const delayPromise = delay(timeoutInMs);
+  const timeoutPromise = delay(timeoutInMs);
+
   const parsedBody = safeJsonParse(req.body);
   if (!parsedBody.success) return res.status(400).json({ error: "Invalid request body" });
 
@@ -66,28 +76,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<unknown>) => {
 
   const callAnthropicPromise = callAnthropic({
     anthropicInstance: anthropic,
-    messages: [
-      createAnthropicTextMessage({
-        role: "user",
-        text: parsed.data.prompt,
-      }),
-    ],
+    messages: [createAnthropicTextMessage({ role: "user", text: parsed.data.prompt })],
     onNewChunk: (message) => {
-      const now = Date.now();
       messageChunksSinceLastFlush.push(message);
 
+      const now = Date.now();
       if (now - timeSinceLastFlush < 40) return;
-
       timeSinceLastFlush = now;
-      res.write(JSON.stringify({ message: messageChunksSinceLastFlush.join("") }));
+
+      flush({ res, message: messageChunksSinceLastFlush.join("") });
       messageChunksSinceLastFlush = [];
-      res?.flushHeaders();
-      if ("flush" in res && typeof res.flush === "function") res.flush();
     },
   });
 
-  const promiseResult = await Promise.race([callAnthropicPromise, delayPromise]);
-  if (!promiseResult?.success) res.write(JSON.stringify({ error: "request timeout" }));
+  const promiseResult = await Promise.race([callAnthropicPromise, timeoutPromise]);
+  if (!promiseResult?.success) flush({ res, error: "request timeout" });
+
+  flush({ res, message: messageChunksSinceLastFlush.join("") });
 
   res.end();
 };
