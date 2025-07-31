@@ -80,7 +80,6 @@ export const AiChatScreen = (p: { threadFriendlyId: string }) => {
                   },
                   onStream: (x) => {
                     setMode("streaming");
-                    console.log(`AiChatScreen.tsx:${/*LL*/ 150}`, { x });
                     setStreamedText(() => x);
                   },
                 });
@@ -88,7 +87,7 @@ export const AiChatScreen = (p: { threadFriendlyId: string }) => {
                 if (!resp.success) return setMode("error");
 
                 setMode("ready");
-                setStreamedText(resp.data);
+                setStreamedText(() => resp.data);
               }}
             />
           ) : (

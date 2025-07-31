@@ -37,7 +37,6 @@ export const getAiThreadRecordByFriendlyThreadId = async (p: {
       .getFirstListItem(`friendlyId="${p.friendlyThreadId}"`);
     return aiThreadRecordSchema.safeParse(resp);
   } catch (error) {
-    console.error(error);
     return { success: false, error } as const;
   }
 };
