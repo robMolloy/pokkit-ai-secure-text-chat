@@ -8,10 +8,9 @@ import {
 } from "@/modules/aiChat/components/Messages";
 import { ScrollContainer } from "@/modules/aiChat/components/ScrollContainer";
 import { useAiThreadRecordsStore } from "@/modules/aiThreads/aiThreadRecordsStore";
-import { useAnthropicStore } from "@/modules/providers/anthropicStore";
 import { ErrorScreen } from "@/screens/ErrorScreen";
 import { LoadingScreen } from "@/screens/LoadingScreen";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAiTextMessageRecordsStore } from "../aiTextMessages/aiTextMessageRecordsStore";
 import { AiInputTextForm } from "./components/AiInputTextForm";
 
@@ -30,10 +29,15 @@ export const AiChatScreen = (p: { threadFriendlyId: string }) => {
     a.created < b.created ? -1 : 1,
   );
 
-  const anthropicStore = useAnthropicStore();
-  const anthropicInstance = anthropicStore.data;
   const [mode, setMode] = useState<"ready" | "thinking" | "streaming" | "error">("ready");
   const [streamedText, setStreamedText] = useState("");
+
+  const init = () => {
+    setMode("ready");
+    setStreamedText("");
+  };
+
+  useEffect(() => init(), [p.threadFriendlyId]);
 
   if (aiThreadRecordsStore.data === undefined) return <LoadingScreen />;
   if (aiThreadRecordsStore.data === null) return <ErrorScreen />;
@@ -62,37 +66,33 @@ export const AiChatScreen = (p: { threadFriendlyId: string }) => {
         </ScrollContainer>
 
         <div className="p-4 pt-1">
-          {anthropicInstance ? (
-            <AiInputTextForm
-              disabled={mode === "thinking" || mode === "streaming"}
-              onSubmit={async (x) => {
-                setMode("thinking");
+          <AiInputTextForm
+            disabled={mode === "thinking" || mode === "streaming"}
+            onSubmit={async (x) => {
+              setMode("thinking");
 
-                const resp = await streamFetch({
-                  url: "/api/submit-chat",
-                  payload: {
-                    method: "POST",
-                    body: JSON.stringify({
-                      token: pb.authStore.token,
-                      prompt: x.text,
-                      threadFriendlyId,
-                    }),
-                  },
-                  onStream: (x) => {
-                    setMode("streaming");
-                    setStreamedText(() => x);
-                  },
-                });
+              const resp = await streamFetch({
+                url: "/api/submit-chat",
+                payload: {
+                  method: "POST",
+                  body: JSON.stringify({
+                    token: pb.authStore.token,
+                    prompt: x.text,
+                    threadFriendlyId,
+                  }),
+                },
+                onStream: (x) => {
+                  setMode("streaming");
+                  setStreamedText(() => x);
+                },
+              });
 
-                if (!resp.success) return setMode("error");
+              if (!resp.success) return setMode("error");
 
-                setMode("ready");
-                setStreamedText(() => resp.data);
-              }}
-            />
-          ) : (
-            <div>No AI instance</div>
-          )}
+              setMode("ready");
+              setStreamedText(() => resp.data);
+            }}
+          />
         </div>
       </div>
     </MainLayout>
