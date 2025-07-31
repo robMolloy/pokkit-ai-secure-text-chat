@@ -26,7 +26,7 @@ export const streamFetch = async (p: {
       if (!jsonParseResp.success) return { success: false, error: "unable to parse data" };
 
       const message = jsonParseResp.data.message;
-      if (!message)
+      if (message === undefined)
         return { success: false, error: jsonParseResp.data.error ?? "no message provided" };
 
       strArray.push(message);

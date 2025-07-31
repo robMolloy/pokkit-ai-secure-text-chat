@@ -27,6 +27,21 @@ export const createAiThreadRecord = async (p: {
   }
 };
 
+export const getAiThreadRecordByFriendlyThreadId = async (p: {
+  pb: PocketBase;
+  friendlyThreadId: string;
+}) => {
+  try {
+    const resp = await p.pb
+      .collection(collectionName)
+      .getFirstListItem(`friendlyId="${p.friendlyThreadId}"`);
+    return aiThreadRecordSchema.safeParse(resp);
+  } catch (error) {
+    console.error(error);
+    return { success: false, error } as const;
+  }
+};
+
 export const listAiThreadRecords = async (p: { pb: PocketBase }) => {
   try {
     const initData = await p.pb.collection(collectionName).getFullList({
