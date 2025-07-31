@@ -31,10 +31,11 @@ export const getAiThreadRecordByFriendlyThreadId = async (p: {
   pb: PocketBase;
   friendlyThreadId: string;
 }) => {
+  const key: keyof TAiThreadRecord = "friendlyId";
   try {
     const resp = await p.pb
       .collection(collectionName)
-      .getFirstListItem(`friendlyId="${p.friendlyThreadId}"`);
+      .getFirstListItem(`${key}="${p.friendlyThreadId}"`);
     return aiThreadRecordSchema.safeParse(resp);
   } catch (error) {
     return { success: false, error } as const;

@@ -30,6 +30,23 @@ export const createAiTextMessageRecord = async (p: {
     return { success: false, error } as const;
   }
 };
+export const getAiTextMessageRecordByThreadId = async (p: { pb: PocketBase; threadId: string }) => {
+  const threadIdKey: keyof TAiTextMessageRecord = "threadId";
+  try {
+    const initData = await p.pb.collection(collectionName).getFullList({
+      sort: "-created",
+      filter: `${threadIdKey} = "${p.threadId}"`,
+    });
+
+    const data = initData
+      .map((x) => aiTextMessageRecordSchema.safeParse(x))
+      .filter((x) => x.success)
+      .map((x) => x.data);
+    return { success: true, data } as const;
+  } catch (error) {
+    return { success: false, error } as const;
+  }
+};
 export const listAiTextMessageRecords = async (p: { pb: PocketBase }) => {
   try {
     const initData = await p.pb.collection(collectionName).getFullList({

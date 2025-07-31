@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { pb } from "@/config/pocketbaseConfig";
+import { useAiThreadRecordsStore } from "@/modules/aiThreads/aiThreadRecordsStore";
 import { logout } from "@/modules/auth/dbAuthUtils";
 import { useUsersStore } from "@/modules/users/usersStore";
-import { useAnthropicStore } from "@/modules/providers/anthropicStore";
 import { useCurrentUserStore } from "@/stores/authDataStore";
+import { Tooltip } from "@radix-ui/react-tooltip";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode } from "react";
 import { CustomIcon } from "../CustomIcon";
-import { useAiThreadRecordsStore } from "@/modules/aiThreads/aiThreadRecordsStore";
 import { TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
-import { Tooltip } from "@radix-ui/react-tooltip";
 import { MainLayout } from "./Layout";
 
 const uuid = () => crypto.randomUUID();
@@ -91,7 +90,6 @@ export function LeftSidebar() {
   const usersStore = useUsersStore();
   const pendingUsersCount = usersStore.data.filter((user) => user.status === "pending").length;
 
-  const anthropicStore = useAnthropicStore();
   return (
     <MainLayout fillPageExactly padding={false}>
       <div className="flex h-full flex-col">
@@ -102,7 +100,6 @@ export function LeftSidebar() {
             </SidebarButton>
 
             <SidebarButton
-              disabled={!anthropicStore.data}
               iconName="Brain"
               isHighlighted={!currentThread && !!threadFriendlyId}
               onClick={() => router.push(`/ai-chat/${uuid()}`)}
@@ -120,7 +117,6 @@ export function LeftSidebar() {
                 return (
                   <SidebarButton
                     key={x.friendlyId}
-                    disabled={!anthropicStore.data}
                     isHighlighted={x.friendlyId === threadFriendlyId}
                     onClick={() => router.push(`/ai-chat/${x.friendlyId}`)}
                     tooltipContent={label}

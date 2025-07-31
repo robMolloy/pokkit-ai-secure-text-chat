@@ -1,11 +1,19 @@
 import { PocketBase } from "@/config/pocketbaseConfig";
 import { delay, safeJsonParse } from "@/lib/utils";
-import { createAiTextMessageRecord } from "@/modules/aiTextMessages/dbAiTextMessageUtils";
+import {
+  createAiTextMessageRecord,
+  getAiTextMessageRecordByThreadId,
+} from "@/modules/aiTextMessages/dbAiTextMessageUtils";
 import {
   createAiThreadRecord,
   getAiThreadRecordByFriendlyThreadId,
+  updateAiThreadRecordTitle,
 } from "@/modules/aiThreads/dbAiThreadRecordUtils";
-import { callAnthropic, createAnthropicTextMessage } from "@/modules/providers/anthropicApi";
+import {
+  callAnthropic,
+  createAnthropicTextMessage,
+  createTitleForMessageThreadWithAnthropic,
+} from "@/modules/providers/anthropicApi";
 import { userSchema } from "@/modules/users/dbUsersUtils";
 import Anthropic from "@anthropic-ai/sdk";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -94,6 +102,31 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<unknown>) => {
   if (!createUserAiTextMessageRecordResp.success)
     return res.status(500).json({ error: "Failed to create ai text message" });
 
+  const messagesResp = await getAiTextMessageRecordByThreadId({
+    pb: authResult.data.pb,
+    threadId: thread.id,
+  });
+
+  if (!messagesResp.success)
+    return res.status(500).json({ error: "Failed to fetch ai text message records" });
+
+  const anthropicMessages = messagesResp.data.map((x) =>
+    createAnthropicTextMessage({
+      role: x.role,
+      text: x.contentText,
+    }),
+  );
+
+  if (anthropicMessages.length > 2 && !thread.title) {
+    createTitleForMessageThreadWithAnthropic({
+      anthropic,
+      messages: anthropicMessages,
+    }).then((titleResp) => {
+      if (titleResp.success)
+        updateAiThreadRecordTitle({ pb: authResult.data.pb, id: thread.id, title: titleResp.data });
+    });
+  }
+
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -103,7 +136,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<unknown>) => {
 
   const callAnthropicPromise = callAnthropic({
     anthropicInstance: anthropic,
-    messages: [createAnthropicTextMessage({ role: "user", text: parsedBody.data.prompt })],
+    messages: [
+      ...anthropicMessages,
+      createAnthropicTextMessage({ role: "user", text: parsedBody.data.prompt }),
+    ],
     onNewChunk: (message) => {
       messageChunksSinceLastFlush.push(message);
 
